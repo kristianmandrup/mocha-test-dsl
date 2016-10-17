@@ -1,15 +1,19 @@
 # Mocha Test DSL
 
 Modern testing DSL built on top of [mocha](https://mochajs.org/)
-- Uses chaining to allow for easier composition.
-- Use optional `RunContext` class to describe how to setup and tear down run context.
-- Recommend using `context` and `check` objects to encapsulate:
+
+- Use chaining to allow for easier composition.
+- Use optional `runContext` class/objet to describe how to setup and tear down run context.
+- Use `context` and `check` objects to encapsulate:
   - the functionality to test 
   - the test functions (expectations) on the result 
 
 The `context` and `check` objects can either be simple objects with functions on or 
 use classes for even more power and reuse, polymorhism etc.
-The `RunContext` can also be subclassed and extended easily to suit different testing scenarios. 
+
+If the `runContext` is a class it can also be subclassed and extended easily to suit different testing scenarios. 
+Use composition and a divide & conquer testing strategie to create parts of the test which can 
+be externalised in one or more files to be shared between suites!
 
 ## Install
 
