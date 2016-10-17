@@ -7,6 +7,8 @@ class Tester {
     this.instance = {};
 
     this.will = this.should;
+    this.when = this.that;
+    this.for = this.that;
 
     if (typeof opts === 'function') 
       this.fun = opts;    
@@ -17,10 +19,6 @@ class Tester {
   }
 
   that(text, opts) {
-    return new Tester(this, text, opts);
-  }
-
-  for(text, opts) {
     return new Tester(this, text, opts);
   }
 

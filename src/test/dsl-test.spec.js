@@ -12,10 +12,13 @@ const test = require('../lib/dsl');
 
 const context = {
   delete: async () => {
-    try {
-      await fs.stat(path.join(__dirname, './dsl.js'));
+    let file = path.join(__dirname, './helper.js');
+    try {      
+      // console.log('get stats', file)
+      await fs.stat(file);
       return true;
     } catch (err) {
+      console.log('file not found', file)
       return false;
     }    
   }
@@ -56,20 +59,22 @@ class Ctx{
 test('Addon')
   .that('READ item')
   .for('some cool stuff')
-  .will('read a single component', () => {
-    expect(1 + 1).to.eql(2);
-  })
-  .run();
+    .will('read a single component', () => {
+      expect(1 + 1).to.eql(2);
+    })
+    .run();
 
 test('Components')
   .that('DELETE item', {
     prepare: Ctx
   })
-  .should('delete a single component', async () => {
-    let result = await context.delete(); 
-    check.wasDeleted(result);
-  })
-  .should('delete also update index', () => {
-    check.wasIdexed(true);
-  })
-  .run()
+  .when('going gets tough')
+    .should('delete a single component', async () => {
+      let result = await context.delete(); 
+      console.log('result', result);
+      check.wasDeleted(result);
+    })
+    .should('delete also update index', () => {
+      check.wasIdexed(true);
+    })
+    .run()

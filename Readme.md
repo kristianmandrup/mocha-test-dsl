@@ -9,10 +9,11 @@ Sample usage example:
 ```js
 const test = require('../lib/dsl');
 
+// TODO: put in a separate file to share between tests
 const context = {
   delete: async () => {
     try {
-      await fs.stat(path.join(__dirname, './dsl.js'));
+      await fs.stat(path.join(__dirname, './helper.js'));
       return true;
     } catch (err) {
       return false;
@@ -20,6 +21,7 @@ const context = {
   }
 }
 
+// TODO: put in a separate file to share between tests
 const check = {
   wasDeleted: (ctx) => {
     expect(ctx).to.eql(true);
@@ -29,7 +31,8 @@ const check = {
   }
 }
 
-class Ctx{
+// TODO: put in a separate file to share between tests
+class RunCtx {
   constructor() {
     this.x = 1;    
   }
@@ -62,7 +65,7 @@ test('Addon')
 
 test('Components')
   .that('DELETE item', {
-    prepare: Ctx
+    prepare: RunCtx
   })
   .should('delete a single component', async () => {
     let result = await context.delete(); 
@@ -73,6 +76,58 @@ test('Components')
   })
   .run()
 ```  
+
+When the main test parts have been but into a separate file for reuse: 
+
+```js
+const test = require('../lib/dsl');
+const { RunCtx , check, context } = require('./test-ctx');
+
+test('Components')
+  .that('DELETE item', {
+    prepare: RunCtx
+  })
+  .should('delete a single component', async () => {
+    let result = await context.delete(); 
+    check.wasDeleted(result);
+  })
+  .should('delete also update index', () => {
+    check.wasIdexed(true);
+  })
+  .run()
+```
+
+Note that since chain syntax is enabled, we can compose and reuse tests elegantly from individual parts:
+
+```js
+let delete = test('Components')
+  .that('DELETE item', {
+    prepare: RunCtx
+  })
+
+delete.when('indexed')
+  .should('delete a single component', async () => {
+    let result = await context.delete(); 
+    check.wasDeleted(result);
+  })
+  .should('delete also update index', async () => {
+    let result = await context.index();
+    check.wasIdexed(true);
+  })
+  .run()
+
+delete.when('not indexed')
+  .should('not delete a single component', async () => {
+    let result = await context.delete(); 
+    check.wasDeleted(result, false);
+  })
+  .should('not delete also update index', async () => {
+    let result = await context.index();
+    check.wasIdexed(result, false);
+  })
+  .run()
+``` 
+
 
 
 ### Install
