@@ -1,6 +1,17 @@
 # Mocha Test DSL
 
-### Install
+Modern testing DSL built on top of [mocha](https://mochajs.org/)
+- Uses chaining to allow for easier composition.
+- Use optional `RunContext` class to describe how to setup and tear down run context.
+- Recommend using `context` and `check` objects to encapsulate:
+  - the functionality to test 
+  - the test functions (expectations) on the result 
+
+The `context` and `check` objects can either be simple objects with functions on or 
+use classes for even more power and reuse, polymorhism etc.
+The `RunContext` can also be subclassed and extended easily to suit different testing scenarios. 
+
+## Install
 
 `npm i mocha-dsl --save-dev` 
 
@@ -37,8 +48,8 @@ const check = {
 
 // TODO: put in a separate file to share between tests
 class RunCtx {
-  constructor() {
-    this.x = 1;    
+  constructor(x) {
+    this.x = x;    
   }
 
   before() {
@@ -49,6 +60,7 @@ class RunCtx {
     console.log('before each');
   }
 
+  // clean up
   after() {
     this.x = 0;
     console.log('x = ', this.x)
@@ -101,15 +113,30 @@ test('Components')
   .run()
 ```
 
-Note that since chain syntax is enabled, we can compose and reuse tests elegantly from individual parts:
+The `prepare` can also be set to an object with `beforeXX` and `afterXX` methods.     
+
+Since chain syntax is enabled, we can compose and reuse tests elegantly from individual parts:
 
 ```js
-let delete = test('Components')
-  .that('DELETE item', {
-    prepare: RunCtx
+
+let delete = {
+  item: test('Components').that('DELETE item'),
+  version: test('Components').that('DELETE version')
+  // ...
+}
+
+let delete.default = delete.item
+  .when('default indexed', {
+    prepare: new RunCtx()
   })
 
-delete.when('indexed')
+let delete.notIndexed = delete.item
+  .when('not indexed', {
+    prepare: new RunCtx({indexed: false})
+  })
+
+// Note: again the above could be placed in a different file for reuse across the test suite
+delete.default  
   .should('delete a single component', async () => {
     let result = await context.delete(); 
     check.wasDeleted(result);
@@ -120,19 +147,22 @@ delete.when('indexed')
   })
   .run()
 
-delete.when('not indexed')
-  .should('not delete a single component', async () => {
-    let result = await context.delete(); 
-    check.wasDeleted(result, false);
-  })
-  .should('not delete also update index', async () => {
-    let result = await context.index();
-    check.wasIdexed(result, false);
-  })
-  .run()
+deleteNotIndexed
+  .when('not indexed')
+    .should('not delete a single component', async () => {
+      let result = await context.delete(); 
+      check.wasDeleted(result, false);
+    })
+    .should('not delete also update index', async () => {
+      let result = await context.index();
+      check.wasIdexed(result, false);
+    })
+    .run()
 ``` 
 
 ## Development
+
+Here some tips on further developing this handy testing DSL.
 
 ### Build
 

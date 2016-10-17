@@ -34,8 +34,8 @@ const check = {
 }
 
 class Ctx{
-  constructor() {
-    this.x = 1;    
+  constructor(x) {
+    this.x = x;    
   }
 
   before() {
@@ -64,10 +64,17 @@ test('Addon')
     })
     .run();
 
-test('Components')
+let basic = test('Components')
   .that('DELETE item', {
     prepare: Ctx
   })
+
+let with2 = test('Components')
+  .that('DELETE item', {
+    prepare: new Ctx(2)
+  })
+
+  with2
   .when('going gets tough')
     .should('delete a single component', async () => {
       let result = await context.delete(); 

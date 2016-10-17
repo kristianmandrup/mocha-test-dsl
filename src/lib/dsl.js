@@ -14,7 +14,11 @@ class Tester {
       this.fun = opts;    
 
     if (typeof opts === 'object' && this.opts.prepare) {
-      this.clazz = opts.prepare;                
+      if (this.opts.prepare === 'function')
+        this.runCtxConstructor = opts.prepare;                
+
+      if (this.opts.prepare === 'object')
+        this.runCtxObj = opts.prepare;                
     }      
   }
 
@@ -26,10 +30,12 @@ class Tester {
     if (this.parent) {
       // console.log('describe w parent', this.text)      
       this.parent.describe(() => {        
-        if (this.clazz) {
+        if (this.runCtxConstructor)
           this.instance = new this.clazz();
-        }
         
+        if (this.runCtxObj)
+          this.instance = this.runCtxObj; 
+
         if (this.instance && this.instance.beforeEach)
           before(this.instance.before);      
 
