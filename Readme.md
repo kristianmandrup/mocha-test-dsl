@@ -1,5 +1,9 @@
 # Mocha Test DSL
 
+### Install
+
+`npm i mocha-dsl --save-dev` 
+
 ## Usage
 
 `const test = require('mocha-test-dsl');`
@@ -127,12 +131,6 @@ delete.when('not indexed')
   })
   .run()
 ``` 
-
-
-
-### Install
-
-`npm i mocha-dsl --save-dev` 
 
 ## Development
 
