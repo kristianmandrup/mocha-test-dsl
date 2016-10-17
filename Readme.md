@@ -2,12 +2,12 @@
 
 ## Usage
 
-`const test = require('../lib/dsl');`
+`const test = require('mocha-test-dsl');`
 
 Sample usage example:
 
 ```js
-const test = require('../lib/dsl');
+const test = require('mocha-test-dsl');
 
 // TODO: put in a separate file to share between tests
 const context = {
