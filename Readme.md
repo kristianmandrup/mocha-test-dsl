@@ -3,18 +3,29 @@
 Modern testing DSL built on top of [mocha](https://mochajs.org/)
 
 - Use chaining to allow for easier composition.
-- Use optional `runContext` class/object to describe how to setup and tear down run context.
-- Use `context` and `check` objects to encapsulate:
-  - the functionality to test
+- Use optional `prepare` class/object to describe how to setup and tear down run context.
+- Use `env` and `check` objects to encapsulate:
+  - the environment to test in
   - the test functions (expectations) on the result
 
-The `context` and `check` objects can either be:
+The `prepare`, `env` and `check` objects can either be:
 - simple objects with functions
 - classes for even more power and reuse, polymorhism etc.
 
-If the `runContext` is a class it can also be subclassed and extended easily to suit different testing scenarios.
-Use composition and a divide & conquer testing strategie to create parts of the test which can
-be externalised in one or more files to be shared between suites!
+```js
+test('Component model')
+  .for('a mongo DB connection', {
+    prepare
+  })
+  .that('the delete command')
+    .will('delete a single component', async () => {
+      let result = await action.delete();
+      check.for(result)
+        .wasDeleted()
+        .isIndexed(false)
+    })
+    .run()
+```
 
 ## Install
 
@@ -161,20 +172,16 @@ const prepare = prepare(dbenv)
 // (optionally) make prepare environment accessible by checker
 const check = checker(prepare.env);
 
-test('Components')
-  .for(' a mongo DB connection', {
+test('Component model')
+  .for('a mongo DB connection', {
     prepare
   })
-  .that('DELETE item')
+  .that('the delete command')
     .will('delete a single component', async () => {
       let result = await action.delete();
       check.for(result)
         .wasDeleted()
         .isIndexed(false)
-    })
-    .and('also update index', () => {
-      check.for(result)
-        .isIndexed(true)
     })
     .run()
 ```
@@ -183,57 +190,70 @@ Since chain syntax is enabled, we can compose and reuse tests elegantly from ind
 
 ```js
 
-let delete = {
-  item: test('Components').that('DELETE item'),
-  version: test('Components').that('DELETE version')
+let component = test('Component model')
+
+let action = {
+  delete: component.that('delete action'),
+  create: component.that('create action')
   // ...
 }
 
-let delete.default = delete.item
+// continue chaining...
+let action.delete.default = action.delete.item
   .when('default indexed', {
-    prepare: new RunCtx()
+    prepare: new Prepare()
   })
 
-let delete.notIndexed = delete.item
+let action.delete.notIndexed = action.delete.item
   .when('not indexed', {
-    prepare: new RunCtx({indexed: false})
+    prepare: new Prepare({indexed: false})
   })
 
 // Note: again the above could be placed in a different file for reuse across the test suite
-delete.default
+action.delete.default
   .should('delete a single component', async () => {
-    let result = await context.delete();
-    check.wasDeleted(result);
+    let result = await model.action.delete();
+    check.for(result)
+      .wasDeleted();
   })
   .and('also update index', async () => {
-    let result = await context.index();
-    check.wasIdexed(true);
+    // since check is global and set from previous test we can reuse directly here if we like
+    check
+      .isIdexed(false);
   })
   .run()
 
-deleteNotIndexed
-  .when('not indexed')
-    .should('not delete a single component', async () => {
-      let result = await context.delete();
-      check.wasDeleted(result, false);
+action.delete.notIndexed
+    .should('not delete it', async () => {
+      let result = await model.action.delete();
+      check.for(result)
+        .wasDeleted(false);
     })
-    .but('not delete update index', async () => {
-      let result = await context.index();
-      check.wasIdexed(result, false);
+    .and('still not indexed', async () => {
+      check
+        .wasIdexed(false);
     })
     .run()
 ```
 
+We recommend using `check` chaining to reduce the `should` chains and make multiple checks to check for a specific kind of outcome, such as checking the returned value and making checks on the actual environment affected.
+
+Use `should` chaining only when you need to, in order to make the test output more clear and to group logical types of outcome tests.
+
+PS: Always mock the environment when you can!
+
 ### Aliases
+
+To make the DSL more fluent, the following aliases are available:
 
 `that` - `when`, `for`, `on`, `while`
 `should` - `will`, `it`, `and`, `but`, `can`
 
 ### DSL rules
 
-`test` followed by any number of chained `that` (or alias).
-Any `that` can chain with any number of chained `should` (or alias)
-To add the test chain add a `run()` at the end.
+- `test` followed by any number of chained `that` (or alias).
+- Any `that` can chain with any number of chained `should` (or alias)
+- To run a test chain add a `run()` call at the end of a `should` chain.
 
 ### Enable/Disable tests
 
