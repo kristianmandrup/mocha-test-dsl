@@ -246,7 +246,8 @@ PS: Always mock the environment when you can!
 
 To make the DSL more fluent, the following aliases are available:
 
-`that` - `when`, `for`, `on`, `while`
+`that` - `when`, `for`, `on`, `in`, `while`
+
 `should` - `will`, `it`, `and`, `but`, `can`
 
 ### DSL rules

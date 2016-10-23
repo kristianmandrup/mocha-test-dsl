@@ -15,6 +15,7 @@ class Tester {
     this.when = this.that;
     this.for = this.that;
     this.on = this.that;
+    this.in = this.that;
     this.while = this.that;
 
     if (typeof opts === 'function')
