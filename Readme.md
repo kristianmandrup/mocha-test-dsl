@@ -1,5 +1,7 @@
 # Mocha Test DSL
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/kristianmandrup/mocha-test-dsl.svg)](https://greenkeeper.io/)
+
 Modern testing DSL built on top of [mocha](https://mochajs.org/)
 
 - Use chaining to allow for easier composition.
